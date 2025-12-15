@@ -8,14 +8,17 @@ connex_app = connexion.App(__name__, specification_dir=basedir)
 
 app = connex_app.app
 
-# UPDATED FOR YOUR SPECIFIC DATABASE
+# --- SECURITY KEY (REQUIRED FOR LOGIN) ---
+app.config["SECRET_KEY"] = "super_secret_key_for_assignment_cw2" 
+
+# --- DATABASE CONNECTION ---
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "mssql+pyodbc:///?odbc_connect="
     "DRIVER={ODBC Driver 18 for SQL Server};"
     "SERVER=localhost;"
-    "DATABASE=MAL2018_Information_Management_Retrieval;"  # <-- The name from your screenshot
+    "DATABASE=MAL2018_Information_Management_Retrieval;" 
     "UID=SA;"
-    "PWD=C0mp2001!;"               # Assuming you used the standard password
+    "PWD=C0mp2001!;" 
     "TrustServerCertificate=yes;"
     "Encrypt=yes;"
 )

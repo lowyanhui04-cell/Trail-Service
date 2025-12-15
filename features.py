@@ -1,17 +1,26 @@
 from flask import abort
 from config import db
 from models import Feature, TrailFeature, features_schema, feature_schema, Trail, trail_feature_schema
+from auth import token_required
+import jwt
+from flask import current_app, request
 
-# ==========================
-# FEATURE CRUD
-# ==========================
+# Helper to check Admin role manually inside the function
+def is_admin():
+    token = request.headers['Authorization'].split(" ")[1]
+    data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+    return data['Role'] == 'Admin'
+
 def read_all():
     """GET /features"""
     features = Feature.query.all()
     return features_schema.dump(features)
 
-def create_feature(body):
+@token_required
+def create_feature(current_user_id, body):
     """POST /features"""
+    if not is_admin(): abort(403, "Permission Denied: Admins only.")
+    
     new_feat = Feature(
         Feature_Name=body.get("Feature_Name"),
         Feature_Description=body.get("Feature_Description")
@@ -26,8 +35,11 @@ def read_one_feature(id):
     if feat: return feature_schema.dump(feat)
     else: abort(404, f"Feature {id} not found")
 
-def update_feature(id, body):
+@token_required
+def update_feature(current_user_id, id, body):
     """PUT /features/{id}"""
+    if not is_admin(): abort(403, "Permission Denied: Admins only.")
+
     feat = Feature.query.get(id)
     if feat:
         feat.Feature_Name = body.get("Feature_Name")
@@ -36,8 +48,11 @@ def update_feature(id, body):
         return feature_schema.dump(feat)
     else: abort(404, f"Feature {id} not found")
 
-def delete_feature(id):
+@token_required
+def delete_feature(current_user_id, id):
     """DELETE /features/{id}"""
+    if not is_admin(): abort(403, "Permission Denied: Admins only.")
+
     feat = Feature.query.get(id)
     if feat:
         db.session.delete(feat)
@@ -45,11 +60,11 @@ def delete_feature(id):
         return {"message": f"Feature {id} deleted"}, 204
     else: abort(404, f"Feature {id} not found")
 
-# ==========================
-# LINKING LOGIC (Already existed)
-# ==========================
-def add_feature_to_trail(trail_id, feature_id):
+@token_required
+def add_feature_to_trail(current_user_id, trail_id, feature_id):
     """POST /trails/{trail_id}/features/{feature_id}"""
+    if not is_admin(): abort(403, "Permission Denied: Admins only.")
+
     if Trail.query.filter(Trail.Trail_ID == trail_id).count() == 0:
         abort(404, f"Trail {trail_id} not found")
     if Feature.query.filter(Feature.Feature_ID == feature_id).count() == 0:

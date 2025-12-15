@@ -8,6 +8,14 @@ servers:
   - url: "/api"
 
 components:
+  # 1. DEFINE THE SECURITY SCHEME (THE TOKEN)
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: auth.decode_token
+
   schemas:
     Trail:
       type: "object"
@@ -84,17 +92,17 @@ paths:
   /trails:
     get:
       operationId: "trails.read_all"
-      tags:
-        - "Trails"
+      tags: ["Trails"]
       summary: "Read the list of trails"
       responses:
         "200":
           description: "Successfully read trail list"
     post:
       operationId: "trails.create"
-      tags:
-        - "Trails"
+      tags: ["Trails"]
       summary: "Create a new trail"
+      security:            # <--- SECURED
+        - bearerAuth: []
       requestBody:
         description: "Trail to create"
         required: true
@@ -110,15 +118,13 @@ paths:
   /trails/{trail_id}:
     get:
       operationId: "trails.read_one"
-      tags:
-        - "Trails"
+      tags: ["Trails"]
       summary: "Read one trail"
       parameters:
         - name: "trail_id"
           in: path
           required: true
-          schema:
-            type: "integer"
+          schema: {type: "integer"}
       responses:
         "200":
           description: "Successfully read trail"
@@ -126,15 +132,15 @@ paths:
           description: "Trail not found"
     put:
       operationId: "trails.update"
-      tags:
-        - "Trails"
+      tags: ["Trails"]
       summary: "Update a trail"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: "trail_id"
           in: path
           required: true
-          schema:
-            type: "integer"
+          schema: {type: "integer"}
       requestBody:
         content:
           application/json:
@@ -145,15 +151,15 @@ paths:
           description: "Successfully updated trail"
     delete:
       operationId: "trails.delete"
-      tags:
-        - "Trails"
+      tags: ["Trails"]
       summary: "Delete a trail"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: "trail_id"
           in: path
           required: true
-          schema:
-            type: "integer"
+          schema: {type: "integer"}
       responses:
         "204":
           description: "Successfully deleted trail"
@@ -164,31 +170,27 @@ paths:
   /trails/{trail_id}/points:
     get:
       operationId: "trails.get_points"
-      tags:
-        - "Trail Points"
+      tags: ["Trail Points"]
       summary: "Get the path points for a trail"
       parameters:
         - name: "trail_id"
           in: path
           required: true
-          schema:
-            type: "integer"
+          schema: {type: "integer"}
       responses:
-        "200":
-          description: "Success"
-        "404":
-          description: "Trail not found"
+        "200": {description: "Success"}
+        "404": {description: "Trail not found"}
     post:
       operationId: "trails.add_point"
-      tags:
-        - "Trail Points"
+      tags: ["Trail Points"]
       summary: "Add a GPS point to a trail"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: "trail_id"
           in: path
           required: true
-          schema:
-            type: "integer"
+          schema: {type: "integer"}
       requestBody:
         content:
           application/json:
@@ -201,14 +203,15 @@ paths:
                 Longitude: {type: number}
                 Latitude: {type: number}
       responses:
-        "201":
-          description: "Point added"
+        "201": {description: "Point added"}
 
   /trails/{trail_id}/features/{feature_id}:
     post:
       operationId: "features.add_feature_to_trail"
       tags: ["Features"]
       summary: "Link a feature to a trail"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: trail_id
           in: path
@@ -244,6 +247,8 @@ paths:
       operationId: "trails.update_point"
       tags: ["Trail Points"]
       summary: "Update a GPS point"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: point_id
           in: path
@@ -265,6 +270,8 @@ paths:
       operationId: "trails.delete_point"
       tags: ["Trail Points"]
       summary: "Delete a GPS point"
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters:
         - name: point_id
           in: path
@@ -288,6 +295,8 @@ paths:
       operationId: "features.create_feature"
       tags: ["Features"]
       summary: "Create a new feature definition"
+      security:            # <--- SECURED
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -309,6 +318,8 @@ paths:
     put:
       operationId: "features.update_feature"
       tags: ["Features"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       requestBody:
         content:
@@ -322,6 +333,8 @@ paths:
     delete:
       operationId: "features.delete_feature"
       tags: ["Features"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
 
@@ -336,6 +349,8 @@ paths:
     post:
       operationId: "lookups.create_category"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -351,6 +366,8 @@ paths:
     put:
       operationId: "lookups.update_category"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       requestBody:
         content:
@@ -360,6 +377,8 @@ paths:
     delete:
       operationId: "lookups.delete_category"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
 
@@ -374,6 +393,8 @@ paths:
     post:
       operationId: "lookups.create_difficulty"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -389,6 +410,8 @@ paths:
     put:
       operationId: "lookups.update_difficulty"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       requestBody:
         content:
@@ -398,6 +421,8 @@ paths:
     delete:
       operationId: "lookups.delete_difficulty"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
 
@@ -412,6 +437,8 @@ paths:
     post:
       operationId: "lookups.create_route_type"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -427,6 +454,8 @@ paths:
     put:
       operationId: "lookups.update_route_type"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       requestBody:
         content:
@@ -436,5 +465,7 @@ paths:
     delete:
       operationId: "lookups.delete_route_type"
       tags: ["Lookups"]
+      security:            # <--- SECURED
+        - bearerAuth: []
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
