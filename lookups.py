@@ -3,22 +3,17 @@ from models import Category, Difficulty, RouteType
 from models import category_schema, difficulty_schema, route_type_schema
 from flask import abort
 
-# ==========================
-# CATEGORY CRUD
-# ==========================
 def get_categories():
     """GET /categories (Public)"""
     data = Category.query.all()
     return category_schema.dump(data)
 
-def create_category(body, token_info):  # <--- CHANGED 'category_body' TO 'body'
+def create_category(body, token_info):
     """POST /categories (Protected - Admin Only)"""
-    # 1. Check Admin Role
     if token_info.get('Role') != 'Admin':
         abort(403, "Permission Denied: Admins only.")
 
-    # 2. Create
-    name = body.get("Category_Name") # <--- CHANGED
+    name = body.get("Category_Name") 
     new_cat = Category(Category_Name=name)
     db.session.add(new_cat)
     db.session.commit()
@@ -30,27 +25,23 @@ def read_one_category(id):
     if cat: return category_schema.dump(cat)
     else: abort(404, f"Category {id} not found")
 
-def update_category(id, body, token_info): # <--- CHANGED 'category_body' TO 'body'
+def update_category(id, body, token_info):
     """PUT /categories/{id} (Protected - Admin Only)"""
-    # 1. Check Admin Role
     if token_info.get('Role') != 'Admin':
         abort(403, "Permission Denied: Admins only.")
 
-    # 2. Update
     cat = Category.query.get(id)
     if cat:
-        cat.Category_Name = body.get("Category_Name") # <--- CHANGED
+        cat.Category_Name = body.get("Category_Name")
         db.session.commit()
         return category_schema.dump(cat)
     else: abort(404, f"Category {id} not found")
 
 def delete_category(id, token_info):
     """DELETE /categories/{id} (Protected - Admin Only)"""
-    # 1. Check Admin Role
     if token_info.get('Role') != 'Admin':
         abort(403, "Permission Denied: Admins only.")
 
-    # 2. Delete
     cat = Category.query.get(id)
     if cat:
         db.session.delete(cat)
@@ -58,9 +49,6 @@ def delete_category(id, token_info):
         return {"message": f"Category {id} deleted"}, 204
     else: abort(404, f"Category {id} not found")
 
-# ==========================
-# DIFFICULTY CRUD
-# ==========================
 def get_difficulties():
     data = Difficulty.query.all()
     return difficulty_schema.dump(data)
@@ -101,9 +89,6 @@ def delete_difficulty(id, token_info):
         return {"message": f"Difficulty {id} deleted"}, 204
     else: abort(404, f"Difficulty {id} not found")
 
-# ==========================
-# ROUTE TYPE CRUD
-# ==========================
 def get_route_types():
     data = RouteType.query.all()
     return route_type_schema.dump(data)

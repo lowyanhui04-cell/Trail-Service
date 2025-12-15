@@ -8,10 +8,8 @@ connex_app = connexion.App(__name__, specification_dir=basedir)
 
 app = connex_app.app
 
-# --- SECURITY KEY (REQUIRED FOR LOGIN) ---
 app.config["SECRET_KEY"] = "super_secret_key_for_assignment_cw2" 
 
-# --- DATABASE CONNECTION ---
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "mssql+pyodbc:///?odbc_connect="
     "DRIVER={ODBC Driver 18 for SQL Server};"

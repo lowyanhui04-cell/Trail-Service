@@ -8,15 +8,10 @@ from models import (
 from auth import token_required
 import jwt
 
-# Helper to check Admin role
 def is_admin():
     token = request.headers['Authorization'].split(" ")[1]
     data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
     return data['Role'] == 'Admin'
-
-# ==========================================
-# PART 1: TRAIL CRUD OPERATIONS
-# ==========================================
 
 def read_all():
     """GET /trails (Public)"""
@@ -102,10 +97,6 @@ def delete(current_user_id, trail_id):
             abort(500, f"Error deleting trail: {str(e)}")
     else:
         abort(404, f"Trail {trail_id} not found")
-
-# ==========================================
-# PART 2: POINTS (Admin Only for Edit/Delete)
-# ==========================================
 
 def get_points(trail_id):
     """GET /trails/{trail_id}/points (Public)"""

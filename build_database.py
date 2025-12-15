@@ -1,13 +1,6 @@
 from sqlalchemy import text
 from config import app, db
 
-
-# ==========================================
-# PART 1: DATA DEFINITIONS
-# ==========================================
-
-# 1.1 Lookup Data (The missing piece that caused your error)
-# We wrap these in T-SQL "IF NOT EXISTS" checks so you can run this script multiple times safely.
 SQL_LOOKUP_DATA = [
     """
     -- Insert Users if they don't exist
@@ -55,7 +48,6 @@ SQL_FEATURES_DATA = [
     """
 ]
 
-# 1.2 Trail Data (Your existing data)
 TRAILS_DATA = [
     {
         "name": "Plymbridge Circular",
@@ -65,7 +57,7 @@ TRAILS_DATA = [
         "gain": 120,
         "time": 90,
         "info": "Car can park in the public carpark.",
-        "cat": 2,  # Forest (ID 2 will exist now)
+        "cat": 2,  # Forest
         "diff": 1, # Easy
         "route": 1, # Loop
         "user": 1   # Grace
@@ -80,7 +72,7 @@ TRAILS_DATA = [
         "info": "Blue blazes marked with handwritten numbers.",
         "cat": 3, # Mountain
         "diff": 3, # Hard
-        "route": 1,
+        "route": 1, # Loop
         "user": 2 # Tim
     }
 ]
@@ -97,11 +89,6 @@ SQL_TRAIL_POINTS_DATA = [
     END
     """
 ]
-
-
-# ==========================================
-# PART 2: EXECUTION FUNCTIONS
-# ==========================================
 
 def seed_lookups():
     """Inserts Users, Categories, Difficulties, and Route_Types."""
@@ -135,8 +122,6 @@ def seed_trails():
     
     for trail in TRAILS_DATA:
         try:
-            # Check if trail already exists to avoid duplicates (Optional safety check)
-            # This assumes Trail_Name is unique. If not, you can remove this check.
             check_sql = text("SELECT COUNT(*) FROM CW2.TRAIL WHERE Trail_Name = :name")
             result = db.session.execute(check_sql, {"name": trail['name']}).scalar()
             
@@ -180,16 +165,11 @@ def seed_trail_points():
         db.session.rollback()
         print(f"   -> Error seeding trail_points: {e}")
 
-# ==========================================
-# PART 3: MAIN ENTRY POINT
-# ==========================================
-
 if __name__ == "__main__":
-    # We must use app.app_context() because we are using 'db' outside of a web request
     with app.app_context():
         print("--- Starting Database Build ---")
-        seed_lookups() # Step 1: Fixes your Foreign Key Error
+        seed_lookups()
         seed_features()
-        seed_trails()  # Step 2: Adds your trails
+        seed_trails()
         seed_trail_points()
         print("--- Database Build Complete ---")

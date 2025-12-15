@@ -5,7 +5,6 @@ from auth import token_required
 import jwt
 from flask import current_app, request
 
-# Helper to check Admin role manually inside the function
 def is_admin():
     token = request.headers['Authorization'].split(" ")[1]
     data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
