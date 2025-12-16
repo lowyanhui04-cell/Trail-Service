@@ -43,35 +43,34 @@ Ensure you have the following installed on your machine:
 * [ODBC Driver 18 for SQL Server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
 
 ### 1. Clone the Repository
-```bash
-git clone [https://github.com/](https://github.com/)[YOUR-USERNAME]/TrailService.git
+bash
+git clone [https://github.com/](https://github.com/)lowyanhui04-cell/TrailService.git
 cd TrailService
 
 2. Install Dependencies
 Create a virtual environment (optional but recommended) and install the required packages:
-```bash
+bash
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 
 3. Database Configuration
 Ensure your SQL Server is running. The application is configured to connect to `localhost` with the following default credentials (see `config.py`):
-* **Server:** `localhost`
-* **Database:** `MAL2018_Information_Management_Retrieval`
-* **User:** `SA`
-* **Password:** `C0mp2001!`
-
-*If your database credentials differ, please update `config.py` before proceeding.*
+- Server: `localhost`
+- Database: `MAL2018_Information_Management_Retrieval`
+- User: `SA`
+- Password: `C0mp2001!`
+If your database credentials differ, please update `config.py` before proceeding.*
 
 4. Build and Seed the Database
 Run the initialization script to create the schema (`CW2`), tables, views, and seed sample data:
-```bash
+bash
 python build_database.py
 
 🚀 Usage
 1. Start the Server
 Run the application using the following command:
-```bash
+bash
 python app.py
 The server will start on http://0.0.0.0:8000.
 
