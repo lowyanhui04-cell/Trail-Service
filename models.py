@@ -96,7 +96,7 @@ class TrailPublicSchema(ma.SQLAlchemyAutoSchema):
         model = Trail
         load_instance = True
         sqla_session = db.session
-        exclude = ('User_ID', 'Trail_Info', 'Trail_Description', 'Route_ID', 'Difficulty_ID', 'Category_ID')
+        exclude = ('User_ID', 'Trail_Info', 'Trail_Description')
 
 class TrailPointSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

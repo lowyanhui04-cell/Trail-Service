@@ -9,9 +9,13 @@ from auth import token_required
 import jwt
 
 def is_admin():
-    token = request.headers['Authorization'].split(" ")[1]
-    data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-    return data['Role'] == 'Admin'
+    """Checks if the logged-in user has the 'Admin' role."""
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        token = auth_header.split(" ")[1]
+        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+        return data['Role'] == 'Admin'
+    return False
 
 def read_all():
     """GET /trails (Public)"""
@@ -27,7 +31,7 @@ def read_one(trail_id):
         abort(404, f"Trail {trail_id} not found")
 
 @token_required 
-def create(current_user_id, trail):
+def create(current_user_id, body):
     """POST /trails (Admin Only)"""
     if not is_admin(): abort(403, "Permission Denied: Admins only.")
 
@@ -43,11 +47,16 @@ def create(current_user_id, trail):
         """)
         
         result = db.session.execute(sql, {
-            'name': trail.get("Trail_Name"), 'desc': trail.get("Trail_Description"),
-            'loc': trail.get("Location"), 'dist': trail.get("Distance"),
-            'gain': trail.get("Elevation_Gain"), 'time': trail.get("Estimate_Time"),
-            'info': trail.get("Trail_Info"), 'cat': trail.get("Category_ID"),
-            'diff': trail.get("Difficulty_ID"), 'route': trail.get("Route_ID"),
+            'name': body.get("Trail_Name"), 
+            'desc': body.get("Trail_Description"),
+            'loc': body.get("Location"), 
+            'dist': body.get("Distance"),
+            'gain': body.get("Elevation_Gain"), 
+            'time': body.get("Estimate_Time"),
+            'info': body.get("Trail_Info"), 
+            'cat': body.get("Category_ID"),
+            'diff': body.get("Difficulty_ID"), 
+            'route': body.get("Route_ID"),
             'user': current_user_id 
         })
         db.session.commit()
@@ -57,7 +66,7 @@ def create(current_user_id, trail):
         abort(500, f"Error creating trail: {str(e)}")
 
 @token_required
-def update(current_user_id, trail_id, trail):
+def update(current_user_id, trail_id, body):
     """PUT /trails/{trail_id} (Admin Only)"""
     if not is_admin(): abort(403, "Permission Denied: Admins only.")
 
@@ -69,8 +78,10 @@ def update(current_user_id, trail_id, trail):
                     @Trail_ID = :id, @Trail_Name = :name, @Location = :loc, @Distance = :dist
             """)
             db.session.execute(sql, {
-                'id': trail_id, 'name': trail.get("Trail_Name"),
-                'loc': trail.get("Location"), 'dist': trail.get("Distance")
+                'id': trail_id, 
+                'name': body.get("Trail_Name"),
+                'loc': body.get("Location"), 
+                'dist': body.get("Distance")
             })
             db.session.commit()
             return {'message': f'Trail {trail_id} updated successfully'}, 200
@@ -106,19 +117,20 @@ def get_points(trail_id):
     return trail_points_schema.dump(points)
 
 @token_required
-def add_point(current_user_id, trail_id, point):
+def add_point(current_user_id, trail_id, body):
     """POST /trails/{trail_id}/points (Admin Only)"""
     if not is_admin(): abort(403, "Permission Denied: Admins only.")
 
     if Trail.query.filter(Trail.Trail_ID == trail_id).count() == 0:
         abort(404, f"Trail {trail_id} not found")
+    
     try:
         new_point = TrailPoint(
             Trail_ID=trail_id,
-            Point_of_Interest=point.get("Point_of_Interest"),
-            Location_Point=point.get("Location_Point"),
-            Longitude=point.get("Longitude"),
-            Latitude=point.get("Latitude")
+            Point_of_Interest=body.get("Point_of_Interest"),
+            Location_Point=body.get("Location_Point"),
+            Longitude=body.get("Longitude"),
+            Latitude=body.get("Latitude")
         )
         db.session.add(new_point)
         db.session.commit()
