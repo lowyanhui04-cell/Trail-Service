@@ -1,19 +1,23 @@
 from config import db
 from models import Category, Difficulty, RouteType
-from models import category_schema, difficulty_schema, route_type_schema
+from models import (
+    category_schema, categories_schema, 
+    difficulty_schema, difficulties_schema, 
+    route_type_schema, route_types_schema
+)
 from flask import abort
 
 def get_categories():
     """GET /categories (Public)"""
     data = Category.query.all()
-    return category_schema.dump(data)
+    return categories_schema.dump(data)
 
 def create_category(body, token_info):
     """POST /categories (Protected - Admin Only)"""
     if token_info.get('Role') != 'Admin':
         abort(403, "Permission Denied: Admins only.")
 
-    name = body.get("Category_Name") 
+    name = body.get("Category_Name")
     new_cat = Category(Category_Name=name)
     db.session.add(new_cat)
     db.session.commit()
@@ -51,7 +55,7 @@ def delete_category(id, token_info):
 
 def get_difficulties():
     data = Difficulty.query.all()
-    return difficulty_schema.dump(data)
+    return difficulties_schema.dump(data)
 
 def create_difficulty(body, token_info):
     if token_info.get('Role') != 'Admin':
@@ -91,7 +95,7 @@ def delete_difficulty(id, token_info):
 
 def get_route_types():
     data = RouteType.query.all()
-    return route_type_schema.dump(data)
+    return route_types_schema.dump(data)
 
 def create_route_type(body, token_info):
     if token_info.get('Role') != 'Admin':

@@ -8,6 +8,7 @@ servers:
   - url: "/api"
 
 components:
+  # 1. SECURITY CONFIGURATION
   securitySchemes:
     bearerAuth:
       type: http
@@ -15,7 +16,9 @@ components:
       bearerFormat: JWT
       x-bearerInfoFunc: auth.decode_token
 
+  # 2. DATA MODELS (Schemas)
   schemas:
+    # --- TRAIL ---
     Trail:
       type: "object"
       required:
@@ -52,7 +55,82 @@ components:
         User_ID:
           type: "integer"
 
+    # --- LOOKUPS ---
+    Category:
+      type: "object"
+      required:
+        - Category_Name
+      properties:
+        Category_ID:
+          type: "integer"
+          readOnly: true
+        Category_Name:
+          type: "string"
+
+    Difficulty:
+      type: "object"
+      required:
+        - Difficulty_Name
+      properties:
+        Difficulty_ID:
+          type: "integer"
+          readOnly: true
+        Difficulty_Name:
+          type: "string"
+
+    RouteType:
+      type: "object"
+      required:
+        - Route_Type
+      properties:
+        Route_ID:
+          type: "integer"
+          readOnly: true
+        Route_Type:
+          type: "string"
+
+    # --- FEATURES ---
+    Feature:
+      type: "object"
+      required:
+        - Feature_Name
+      properties:
+        Feature_ID:
+          type: "integer"
+          readOnly: true
+        Feature_Name:
+          type: "string"
+        Feature_Description:
+          type: "string"
+
+    # --- POINTS ---
+    TrailPoint:
+      type: "object"
+      required:
+        - Longitude
+        - Latitude
+      properties:
+        Point_ID:
+          type: "integer"
+          readOnly: true
+        Trail_ID:
+          type: "integer"
+          readOnly: true
+        Point_of_Interest:
+          type: "string"
+        Location_Point:
+          type: "string"
+        Longitude:
+          type: "number"
+          format: "float"
+        Latitude:
+          type: "number"
+          format: "float"
+
 paths:
+  # ==========================================
+  # 1. AUTHENTICATION
+  # ==========================================
   /login:
     post:
       operationId: "auth.login"
@@ -76,12 +154,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  User_ID: {type: integer}
-                  Username: {type: string}
-                  Role: {type: string}
+                  token: {type: string}
+                  user: {type: object}
         "401":
           description: "Unauthorized"
 
+  # ==========================================
+  # 2. TRAILS (The Core)
+  # ==========================================
   /trails:
     get:
       operationId: "trails.read_all"
@@ -102,7 +182,6 @@ paths:
         content:
           application/json:
             schema:
-              x-body-name: "trail"
               $ref: "#/components/schemas/Trail"
       responses:
         "201":
@@ -157,6 +236,9 @@ paths:
         "204":
           description: "Successfully deleted trail"
 
+  # ==========================================
+  # 3. TRAIL POINTS
+  # ==========================================
   /trails/{trail_id}/points:
     get:
       operationId: "trails.get_points"
@@ -185,15 +267,104 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [Longitude, Latitude]
-              properties:
-                Point_of_Interest: {type: string}
-                Location_Point: {type: string}
-                Longitude: {type: number}
-                Latitude: {type: number}
+              $ref: "#/components/schemas/TrailPoint"
       responses:
         "201": {description: "Point added"}
+
+  /points/{point_id}:
+    get:
+      operationId: "trails.read_one_point"
+      tags: ["Trail Points"]
+      summary: "Get a specific GPS point"
+      parameters:
+        - name: "point_id"
+          in: path
+          required: true
+          schema: {type: "integer"}
+      responses:
+        "200": {description: "Success"}
+        "404": {description: "Not Found"}
+    put:
+      operationId: "trails.update_point"
+      tags: ["Trail Points"]
+      summary: "Update a GPS point"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "point_id"
+          in: path
+          required: true
+          schema: {type: "integer"}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrailPoint"
+      responses:
+        "200": {description: "Updated"}
+    delete:
+      operationId: "trails.delete_point"
+      tags: ["Trail Points"]
+      summary: "Delete a GPS point"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "point_id"
+          in: path
+          required: true
+          schema: {type: "integer"}
+      responses:
+        "204": {description: "Deleted"}
+
+  # ==========================================
+  # 4. FEATURES
+  # ==========================================
+  /features:
+    get:
+      operationId: "features.read_all"
+      tags: ["Features"]
+      summary: "Get list of all features"
+      responses:
+        "200": {description: "Success"}
+    post:
+      operationId: "features.create_feature"
+      tags: ["Features"]
+      summary: "Create a new feature definition"
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Feature"
+      responses:
+        "201": {description: "Created"}
+
+  /features/{id}:
+    get:
+      operationId: "features.read_one_feature"
+      tags: ["Features"]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+      responses: {"200": {description: "Success"}}
+    put:
+      operationId: "features.update_feature"
+      tags: ["Features"]
+      security:
+        - bearerAuth: []
+      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Feature"
+      responses: {"200": {description: "Updated"}}
+    delete:
+      operationId: "features.delete_feature"
+      tags: ["Features"]
+      security:
+        - bearerAuth: []
+      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+      responses: {"204": {description: "Deleted"}}
 
   /trails/{trail_id}/features/{feature_id}:
     post:
@@ -217,110 +388,10 @@ paths:
         "400":
           description: "Error or already exists"
 
-  /points/{point_id}:
-    get:
-      operationId: "trails.read_one_point"
-      tags: ["Trail Points"]
-      summary: "Get a specific GPS point"
-      parameters:
-        - name: point_id
-          in: path
-          required: true
-          schema: {type: integer}
-      responses:
-        "200": {description: "Success"}
-        "404": {description: "Not Found"}
-    put:
-      operationId: "trails.update_point"
-      tags: ["Trail Points"]
-      summary: "Update a GPS point"
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: point_id
-          in: path
-          required: true
-          schema: {type: integer}
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                Point_of_Interest: {type: string}
-                Location_Point: {type: string}
-                Longitude: {type: number}
-                Latitude: {type: number}
-      responses:
-        "200": {description: "Updated"}
-    delete:
-      operationId: "trails.delete_point"
-      tags: ["Trail Points"]
-      summary: "Delete a GPS point"
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: point_id
-          in: path
-          required: true
-          schema: {type: integer}
-      responses:
-        "204": {description: "Deleted"}
-
-  /features:
-    get:
-      operationId: "features.read_all"
-      tags: ["Features"]
-      summary: "Get list of all features"
-      responses:
-        "200": {description: "Success"}
-    post:
-      operationId: "features.create_feature"
-      tags: ["Features"]
-      summary: "Create a new feature definition"
-      security:
-        - bearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [Feature_Name]
-              properties:
-                Feature_Name: {type: string}
-                Feature_Description: {type: string}
-      responses:
-        "201": {description: "Created"}
-
-  /features/{id}:
-    get:
-      operationId: "features.read_one_feature"
-      tags: ["Features"]
-      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-      responses: {"200": {description: "Success"}}
-    put:
-      operationId: "features.update_feature"
-      tags: ["Features"]
-      security:
-        - bearerAuth: []
-      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                Feature_Name: {type: string}
-                Feature_Description: {type: string}
-      responses: {"200": {description: "Updated"}}
-    delete:
-      operationId: "features.delete_feature"
-      tags: ["Features"]
-      security:
-        - bearerAuth: []
-      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-      responses: {"204": {description: "Deleted"}}
-
+  # ==========================================
+  # 5. LOOKUPS
+  # ==========================================
+  # CATEGORIES
   /categories:
     get:
       operationId: "lookups.get_categories"
@@ -336,7 +407,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Category_Name: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/Category"
       responses: {"201": {description: "Created"}}
 
   /categories/{id}:
@@ -354,7 +426,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Category_Name: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/Category"
       responses: {"200": {description: "Updated"}}
     delete:
       operationId: "lookups.delete_category"
@@ -364,6 +437,7 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
 
+  # DIFFICULTIES
   /difficulties:
     get:
       operationId: "lookups.get_difficulties"
@@ -379,7 +453,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Difficulty_Name: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/Difficulty"
       responses: {"201": {description: "Created"}}
 
   /difficulties/{id}:
@@ -397,7 +472,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Difficulty_Name: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/Difficulty"
       responses: {"200": {description: "Updated"}}
     delete:
       operationId: "lookups.delete_difficulty"
@@ -407,6 +483,7 @@ paths:
       parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
       responses: {"204": {description: "Deleted"}}
 
+  # ROUTE TYPES
   /route-types:
     get:
       operationId: "lookups.get_route_types"
@@ -422,7 +499,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Route_Type: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/RouteType"
       responses: {"201": {description: "Created"}}
 
   /route-types/{id}:
@@ -440,7 +518,8 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: {type: object, properties: {Route_Type: {type: string}}}
+            schema:
+              $ref: "#/components/schemas/RouteType"
       responses: {"200": {description: "Updated"}}
     delete:
       operationId: "lookups.delete_route_type"

@@ -111,9 +111,15 @@ class TrailFeatureSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = db.session
 
-category_schema = CategorySchema(many=True)
-difficulty_schema = DifficultySchema(many=True)
-route_type_schema = RouteTypeSchema(many=True)
+category_schema = CategorySchema()
+categories_schema = CategorySchema(many=True)
+
+difficulty_schema = DifficultySchema()
+difficulties_schema = DifficultySchema(many=True)
+
+route_type_schema = RouteTypeSchema()
+route_types_schema = RouteTypeSchema(many=True)
+
 feature_schema = FeatureSchema()
 features_schema = FeatureSchema(many=True)
 
